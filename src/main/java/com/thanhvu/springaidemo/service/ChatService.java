@@ -6,8 +6,12 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.content.Media;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -33,5 +37,25 @@ public class ChatService {
                 .prompt(prompt)
                 .call()
                 .content();
+    }
+
+    public String chatWithImage(MultipartFile file, String message) {
+        Media media = Media.builder()
+                .mimeType(MimeTypeUtils.parseMimeType(file.getContentType()))
+                .data(file.getResource())
+                .build();
+
+        ChatOptions chatOptions = ChatOptions.builder()
+                .temperature(0D)
+                .build();
+
+        return chatClient.prompt()
+                .options(chatOptions)
+                .system("You are ThanhVu.AI")
+                .user(promptUserSpec -> promptUserSpec.media(media)
+                                                            .text(message))
+                .call()
+                .content();
+
     }
 }
