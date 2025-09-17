@@ -1,6 +1,9 @@
 package com.thanhvu.springaidemo.service;
 
+import com.thanhvu.springaidemo.dto.BillItem;
 import com.thanhvu.springaidemo.dto.ChatRequest;
+import com.thanhvu.springaidemo.dto.ExpenseInfo;
+import com.thanhvu.springaidemo.dto.FilmInfo;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.ai.chat.client.ChatClient;
@@ -9,9 +12,12 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.content.Media;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -23,7 +29,7 @@ public class ChatService {
         this.chatClient = chatClient.build();
     }
 
-    public String chat(ChatRequest request) {
+    public ExpenseInfo chat(ChatRequest request) {
         SystemMessage systemMessage = new SystemMessage("""
                 You are ThanhVu.AI
                 You should response with a super funny voice
@@ -36,10 +42,10 @@ public class ChatService {
         return chatClient
                 .prompt(prompt)
                 .call()
-                .content();
+                .entity(ExpenseInfo.class);
     }
 
-    public String chatWithImage(MultipartFile file, String message) {
+    public List<BillItem> chatWithImage(MultipartFile file, String message) {
         Media media = Media.builder()
                 .mimeType(MimeTypeUtils.parseMimeType(file.getContentType()))
                 .data(file.getResource())
@@ -55,7 +61,8 @@ public class ChatService {
                 .user(promptUserSpec -> promptUserSpec.media(media)
                                                             .text(message))
                 .call()
-                .content();
+                .entity(new ParameterizedTypeReference<List<BillItem>>() {
+                });
 
     }
 }
